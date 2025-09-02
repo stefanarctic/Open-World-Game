@@ -90230,7 +90230,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5388892253964598469, guid: 175d0a26ad7cd7c4f97803af837cd677, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 7.204194
+      value: 5.62
       objectReference: {fileID: 0}
     - target: {fileID: 5388892253964598469, guid: 175d0a26ad7cd7c4f97803af837cd677, type: 3}
       propertyPath: m_LocalPosition.z
@@ -107390,7 +107390,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 1
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
@@ -372443,9 +372443,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   controller: {fileID: 642032817472226716}
-  speed: 8
+  speed: 7
   jumpHeight: 2
-  gravity: -50
+  gravity: -30
   groundCheck: {fileID: 642032818992675711}
   groundDistance: 0.4
   groundmask:
@@ -372530,7 +372530,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 4191840490579877657, guid: e7162510bdb3fa7459861eff6e267b8c, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
