@@ -49,8 +49,21 @@ public class CarController : MonoBehaviour
     public float frontTorqueSplit = 0.4f;
     public float drivetrainEfficiency = 0.85f;
 
+    [Header("Engine Response")]
+    public float throttleResponse = 4f;
+
     [Header("Brakes")]
     public float brakePower = 4000f;
+
+    [Header("Audio")]
+    public AudioSource engineSource;
+    public AudioClip startupClip;
+    public AudioClip idleClip;
+
+    [SerializeField]
+    private bool engineStarted = false;
+    [SerializeField]
+    private bool playingIdle = false;
 
     private Rigidbody rb;
     public float engineRPM;
@@ -58,6 +71,7 @@ public class CarController : MonoBehaviour
     private float brake;
     private float clutch = 1f;
     private bool shifting = false;
+    private float pitchBoost = 0f;
 
     void Awake()
     {
@@ -115,6 +129,9 @@ public class CarController : MonoBehaviour
             brake = 0f;
         }
 
+        if (throttle > 0.1f && pitchBoost <= 0f)
+            pitchBoost = 0.2f;
+
         float steerInput = Input.GetAxis("Horizontal");
 
         frontLeft.steerAngle = steerInput * maxSteerAngle;
@@ -133,6 +150,15 @@ public class CarController : MonoBehaviour
             if (!shifting)
                 AutoShiftLogic();
         }
+
+        // Audio
+        if (playingIdle)
+        {
+            float normalizedRPM = Mathf.InverseLerp(idleRPM, redlineRPM, engineRPM);
+            float basePitch = Mathf.Lerp(0.9f, 1.7f, normalizedRPM);
+            pitchBoost = Mathf.Lerp(pitchBoost, 0f, 5f * Time.deltaTime);
+            engineSource.pitch = basePitch + pitchBoost;
+        }
     }
 
     void FixedUpdate()
@@ -140,6 +166,28 @@ public class CarController : MonoBehaviour
         UpdateEngineRPM();
         ApplyTorque();
         ApplyBrakes();
+    }
+
+    public void StartEngine()
+    {
+        if (engineStarted) return;
+        StartCoroutine(EngineStartupRoutine());
+    }
+
+    IEnumerator EngineStartupRoutine()
+    {
+        engineStarted = true;
+
+        engineSource.loop = false;
+        engineSource.clip = startupClip;
+        engineSource.Play();
+
+        yield return new WaitForSeconds(startupClip.length);
+
+        engineSource.clip = idleClip;
+        engineSource.loop = true;
+        engineSource.Play();
+        playingIdle = true;
     }
 
     void UpdateEngineRPM()
@@ -155,7 +203,11 @@ public class CarController : MonoBehaviour
         else
         {
             float engineTorque = torqueCurve.Evaluate(engineRPM);
-            float rpmChange = (engineTorque / engineInertia) * throttle * Time.fixedDeltaTime;
+            //float rpmChange = (engineTorque / engineInertia) * throttle * Time.fixedDeltaTime;
+            float rpmChange = (engineTorque / engineInertia)
+                  * throttle
+                  * throttleResponse
+                  * Time.fixedDeltaTime;
             engineRPM += rpmChange;
         }
 
@@ -212,7 +264,11 @@ public class CarController : MonoBehaviour
 
     void AutoShiftLogic()
     {
-        if (engineRPM > shiftUpRPM && currentGear < gearRatios.Length - 1)
+        float upRPM = shiftUpRPM;
+        if (currentGear == 2) // First gear — hold longer, shift near redline
+            upRPM = redlineRPM - 100f;
+
+        if (engineRPM > upRPM && currentGear < gearRatios.Length - 1)
             StartCoroutine(ShiftGear(currentGear + 1));
 
         if (engineRPM < shiftDownRPM && currentGear > 2)

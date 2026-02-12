@@ -41,9 +41,10 @@ public class EnterCar : MonoBehaviour
                 if (Input.GetKeyDown(enterCarKey))
                     Enter();
             }
+            return;
         }
 
-        if(enteredCar && Input.GetKeyDown(exitCarKey))
+        if(enteredCar && Input.GetKeyDown(enterCarKey))
             Exit();
     }
     void Enter()
@@ -72,6 +73,7 @@ public class EnterCar : MonoBehaviour
         mainCamera.enabled = false;
         carCamera.enabled = true;
         carController.enabled = true;
+        carController.StartEngine();
 
         print("Entered car");
     }
